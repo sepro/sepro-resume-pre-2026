@@ -19,32 +19,23 @@ const Home = () => {
     }
   `)
 
-  const selected_publications = PublicationData.filter(
-    (publication) => publication.Selected === 1
-  ).map((item, index) => (
-    <Publication
-      key={index}
-      title={item.Title}
-      authors={item.Authors}
-      journal={item.Journal}
-      year={item.Year}
-      badges={item.URLs || []}
-    />
-  ))
-
-  const selected_patents = PatentData.filter(
-    (patent) => patent.Selected === 1
-  ).map((item, index) => (
-    <Publication
-      key={index}
-      title={item.Title}
-      authors={item.Inventors}
-      journal={"Patent: " + item.Identifier}
-      year={item.Year}
-      preprint={0}
-      badges={item.URLs || []}
-    />
-  ))
+  // Combine selected publications and patents, sorted by year
+  const selected_items = [
+    ...PublicationData.filter(p => p.Selected === 1).map(item => ({ ...item, type: 'publication' })),
+    ...PatentData.filter(p => p.Selected === 1).map(item => ({ ...item, type: 'patent' }))
+  ]
+    .sort((a, b) => b.Year - a.Year)
+    .map((item, index) => (
+      <Publication
+        key={index}
+        title={item.Title}
+        authors={item.type === 'patent' ? item.Inventors : item.Authors}
+        journal={item.type === 'patent' ? "Patent: " + item.Identifier : item.Journal}
+        year={item.Year}
+        preprint={item.type === 'patent' ? 0 : item.Preprint}
+        badges={item.URLs || []}
+      />
+    ))
 
   return (
     <Layout
@@ -64,8 +55,7 @@ const Home = () => {
       </h3>
       <div className="text-section">
         <Citations />
-        {selected_patents}
-        {selected_publications}
+        {selected_items}
       </div>
     </Layout>
   )

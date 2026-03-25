@@ -12,13 +12,13 @@ const Publications = () => {
     setSelectedYear(event.target.value)
   }
 
-  const filteredPublications = PublicationData.filter(item => {
-    return selectedYear === "All" ? true : item.Year.toString() === selectedYear;
-  });
-
-  const filteredPatents = PatentData.filter(item => {
-    return selectedYear === "All" ? true : item.Year.toString() === selectedYear;
-  });
+  // Combine publications and patents into a single list with a type marker
+  const combinedItems = [
+    ...PublicationData.map(item => ({ ...item, type: 'publication' })),
+    ...PatentData.map(item => ({ ...item, type: 'patent' }))
+  ]
+    .filter(item => selectedYear === "All" ? true : item.Year.toString() === selectedYear)
+    .sort((a, b) => b.Year - a.Year)
 
   const years = [
     ...new Set([
@@ -27,26 +27,14 @@ const Publications = () => {
     ])
   ].sort((a, b) => b - a)
 
-  const publications = filteredPublications.map((item, index) => (
+  const items = combinedItems.map((item, index) => (
     <Publication
       key={index}
       title={item.Title}
-      authors={item.Authors}
-      journal={item.Journal}
+      authors={item.type === 'patent' ? item.Inventors : item.Authors}
+      journal={item.type === 'patent' ? "Patent: " + item.Identifier : item.Journal}
       year={item.Year}
-      preprint={item.Preprint}
-      badges={item.URLs || []}
-    />
-  ))
-
-  const patents = filteredPatents.map((item, index) => (
-    <Publication
-      key={index}
-      title={item.Title}
-      authors={item.Inventors}
-      journal={"Patent: " + item.Identifier}
-      year={item.Year}
-      preprint={0}
+      preprint={item.type === 'patent' ? 0 : item.Preprint}
       badges={item.URLs || []}
     />
   ))
@@ -73,8 +61,7 @@ const Publications = () => {
         </select>
       </div>
       <div>
-        {patents}
-        {publications}
+        {items}
       </div>
     </Layout>
   )
